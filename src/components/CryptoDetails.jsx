@@ -12,7 +12,6 @@ import {
   TrophyOutlined,
   CheckOutlined,
   NumberOutlined,
-  ThunderboltOutlined,
 } from "@ant-design/icons";
 
 import {
@@ -28,15 +27,27 @@ const { Option } = Select;
 const CryptoDetails = () => {
   const { coinId } = useParams();
   const [timePeriod, setTimePeriod] = useState("7d");
-  const { data, isFeteching } = useGetCryptoDetailsQuery(coinId);
+  const { data, isFetching } = useGetCryptoDetailsQuery(coinId);
   const { data: coinHistory } = useGetCryptoHistoryQuery({
     coinId,
     timePeriod,
   });
   const cryptoDetails = data?.data?.coin;
-  if (isFeteching) return <Loader />;
 
-  const time = ["3h", "24h", "7d", "30d", "1y", "3m", "3y", "5y"];
+
+
+if (isFetching) return <Loader />;
+
+  const time = ["3h", "24h", "7d", "30d", "3m", "1y", "3y", "5y"];
+
+  let allTimeHighPrice = 0,
+    totalSupply = 0,
+    circulatingSupply = 0;
+  if (cryptoDetails?.allTimeHigh?.price)
+    allTimeHighPrice = cryptoDetails.allTimeHigh.price;
+  if (cryptoDetails?.supply?.total) totalSupply = cryptoDetails?.supply?.total;
+  if (cryptoDetails?.supply?.circulating)
+    circulatingSupply = cryptoDetails?.supply?.circulating;
 
   const stats = [
     {
@@ -46,11 +57,6 @@ const CryptoDetails = () => {
     },
     { title: "Rank", value: cryptoDetails?.rank, icon: <NumberOutlined /> },
     {
-      title: "24h Volume",
-      value: `$ ${cryptoDetails?.volume && millify(cryptoDetails?.volume)}`,
-      icon: <ThunderboltOutlined />,
-    },
-    {
       title: "Market Cap",
       value: `$ ${
         cryptoDetails?.marketCap && millify(cryptoDetails?.marketCap)
@@ -59,10 +65,7 @@ const CryptoDetails = () => {
     },
     {
       title: "All-time-high(daily avg.)",
-      value: `$ ${
-        cryptoDetails?.allTimeHigh?.price &&
-        millify(cryptoDetails?.allTimeHigh?.price)
-      }`,
+      value: `$ ${millify(allTimeHighPrice)}`,
       icon: <TrophyOutlined />,
     },
   ];
@@ -89,17 +92,12 @@ const CryptoDetails = () => {
     },
     {
       title: "Total Supply",
-      value: `$ ${
-        cryptoDetails?.supply?.total && millify(cryptoDetails?.supply?.total)
-      }`,
+      value: `$ ${millify(totalSupply)}`,
       icon: <ExclamationCircleOutlined />,
     },
     {
       title: "Circulating Supply",
-      value: `$ ${
-        cryptoDetails?.supply?.circulating &&
-        millify(cryptoDetails?.supply?.circulating)
-      }`,
+      value: `$ ${millify(circulatingSupply)}`,
       icon: <ExclamationCircleOutlined />,
     },
   ];
@@ -108,35 +106,37 @@ const CryptoDetails = () => {
     <Col className="coin-detail-container">
       <Col className="coin-heading-container">
         <Title level={2} className="coin-name">
-          {data?.data?.coin.name} ({data?.data?.coin.symbol}) Price
+          {cryptoDetails?.name} Price
         </Title>
         <p>
-          {data?.data?.coin.name} live price in US dollars. View value
-          statistics, market cap and supply.
+          {cryptoDetails?.name} live price in US dollars. View value statistics,
+          market cap and supply.
         </p>
       </Col>
       <Select
         defaultValue="7d"
         className="select-timeperiod"
         placeholder="Select Time Period"
-        onChange={(value) => setTimePeriod(value)}
+          onChange={(value) => {
+          setTimePeriod(value);
+        }}
       >
         {time.map((date) => (
-          <Option key={data}>{data}</Option>
+          <Option key={date}>{date}</Option>
         ))}
       </Select>
       <LineChart
         coinHistory={coinHistory}
-        currentPrice={millify(cryptoDetails.price)}
-        coinName={cryptoDetails.name}
+        currentPrice={millify(cryptoDetails?.price)}
+        coinName={cryptoDetails?.name}
       />
       <Col className="stats-container">
-        <Col className="coin-value-statistics">
+        <Col className="coin-value-statistic">
           <Col className="coin-value-statistics-heading">
             <Title level={3} className="coin-details-heading">
-              {data?.data?.coin.name} Value Statistics
+              {cryptoDetails?.name} Value Statistics
             </Title>
-            <p>An overview showing the stats of {data?.data?.coin.name}</p>
+            <p>An overview showing the stats of {cryptoDetails?.name}</p>
           </Col>
           {stats.map(({ icon, title, value }) => (
             <Col className="coin-stats">
@@ -148,7 +148,7 @@ const CryptoDetails = () => {
             </Col>
           ))}
         </Col>
-        <Col className="other-value-statistics">
+        <Col className="other-stats-info">
           <Col className="coin-value-statistics-heading">
             <Title level={3} className="coin-details-heading">
               Other Statistics
@@ -169,21 +169,21 @@ const CryptoDetails = () => {
       <Col className="coin-desc-link">
         <Row className="coin-desc">
           <Title level={3} className="coin-details-heading">
-            What is {data?.data?.coin.name}
-            {HTMLReactParser(data?.data?.coin.description)}
+            What is {cryptoDetails?.name}?
+            {HTMLReactParser(cryptoDetails?.description)}
           </Title>
         </Row>
         <Col className="coin-links">
           <Title level={3} className="coin-details-heading">
-            {/*  */} Links
+            {cryptoDetails?.name} Links
           </Title>
-          {cryptoDetails.links.map((link) => (
-            <Row className="coin-link" key={link.name}>
+          {cryptoDetails?.links.map((link) => (
+            <Row className="coin-link" key={link?.name}>
               <Title level={5} className="link-name">
-                {link.type}
+                {link?.type}
               </Title>
               <a href={link.url} target="_blank" rel="noreferrer">
-                {link.name}
+                {link?.name}
               </a>
             </Row>
           ))}

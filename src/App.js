@@ -41,8 +41,8 @@ const App = () => {
             level={5}
             style={{ color: "white", textAlign: "center" }}
           >
-            Crpytoverse <br />
-            All rights reserved
+            Crpyto News <br />
+            ©️ 2022 All rights reserved
           </Typography.Title>
           <Space>
             <Link to="/">Home</Link>
